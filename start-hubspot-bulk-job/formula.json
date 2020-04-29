@@ -1,0 +1,38 @@
+
+{
+    "name": "start-hubspot-bulk-job",
+    "description": "Start a bulk download from HubSpot",
+    "engine": "v3",
+    "configuration": [{
+        "key": "HubSpot.source",
+        "name": "HubSpot Source Account",
+        "type": "elementInstance",
+        "description": "Source HubSpot instance to take backup from",
+        "required": true
+    }],
+    "triggers": [{
+        "name": "trigger",
+        "type": "scheduled",
+        "onSuccess": ["createQuery"],
+        "properties": {
+            "cron": "0 0 01 ? * MON *"
+        }
+    }],
+    "steps": [{
+        "name": "createQuery",
+        "type": "script",
+        "onSuccess": ["createBulkJob"],
+        "onFailure": [],
+        "properties": {}
+    }, {
+        "name": "createBulkJob",
+        "type": "elementRequest",
+        "properties": {
+            "method": "POST",
+            "headers": "${steps.createQuery.headers}",
+            "body": "${steps.createQuery.body}",
+            "api": "/bulk/query",
+            "elementInstanceId": "${config.HubSpotInstance}"
+        }
+    }]
+}

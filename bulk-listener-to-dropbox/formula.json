@@ -1,0 +1,44 @@
+{
+    "name": "bulk-listener-to-dropbox",
+    "engine": "v3",
+    "configuration": [{
+        "key": "HubSpotInstance",
+        "name": "HubSpot Source Account",
+        "type": "elementInstance",
+        "description": "Source HubSpot instance to take backup from",
+        "required": true
+    }, {
+        "key": "DropboxInstance",
+        "name": "Dropbox Source Account",
+        "type": "elementInstance",
+        "description": "Destination Dropbox account to save files in",
+        "required": true
+    }],
+    "triggers": [{
+        "type": "manual",
+        "name": "trigger",
+        "properties": {},
+        "onSuccess": ["streamBulkResults"],
+        "onFailure": []
+    }],
+    "steps": [{
+        "name": "destinationFolder",
+        "type": "script",
+        "onSuccess": ["streamBulkResults"],
+        "onFailure": [],
+        "properties": {}
+    },{
+        "name": "streamBulkResults",
+        "type": "elementRequestStream",
+        "properties": {
+            "downloadMethod": "GET",
+            "downloadApi": "/bulk/${trigger.args.id}/contacts",
+            "downloadElementInstanceId": "${config.HubSpotInstance}",
+            "uploadMethod": "POST",
+            "uploadApi": "${steps.destinationFolder}",
+            "uploadElementInstanceId": "${config.DropboxInstance}"
+        },
+        "onSuccess": [],
+        "onFailure": []
+    }]
+}
