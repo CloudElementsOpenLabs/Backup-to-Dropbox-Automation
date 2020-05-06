@@ -1,6 +1,6 @@
 # Backup to Dropbox Automation - A Formula Tutorial
 
-This tutorial accompanies the [Automating workflows for your business apps using Cloud Elements](https://dropbox.tech/developers) post featured on the Dropbox Developer blog. For more background and context check it out!
+This tutorial accompanies the [Automating workflows for your business apps using Cloud Elements](https://dropbox.tech/developers) post featured on the Dropbox Developer blog. This repo along with the linked blog provides a template for creating an automated business application data backup process using Hubspot as an example source and Dropbox as a destination. For more background and context check it out!
 
 ## Prerequisites
 This tutorial assumes the reader has accounts on Dropbox, HubSpot, and Cloud Elements. Each company has a free tier, so please jump in and build along with us! 
@@ -18,12 +18,14 @@ Nice to haves:
 
 With the above accounts set up, the file in this repo are the only additional things needed to get up and running. However this tutorial utilizes the Cloud Elements asset management CLI as it walks through the contents of the repo and the steps to activate the automation in Cloud Elements.
 
+Quick setup via npm is as follows:
+```
+$ npm install -g ce-util
+$ doctor init
+```
 
-> Find instructions for installing the CLI here: https://github.com/CloudElementsOpenLabs/the-doctor
-> 
-> For npm users, the short version is this:
-> $ npm install -g ce-util
-> $ doctor init
+> More detailed instructions for installing the CLI can be found here: https://github.com/CloudElementsOpenLabs/the-doctor
+
 
 Be sure to have Cloud Elements org and user secrets available, which can be retrieved from the user menu in Cloud Elements as shown below:
 
@@ -42,6 +44,13 @@ Formulas are reusable workflow templates that are completely independent of API 
   * Element Request
   * Script
   * Stream File
+
+# Solution
+
+As explained in the linked blog, this repository contains two separate formulas, one for each half of our automation solution.
+
+1. [start-hubspot-bulk-job](/start-hubspot-bulk-job): get contact data from Hubspot and consolidate into a single file
+2. [bulk-listener-to-dropbox](/bulk-listener-to-dropbox): upload the file to dropbox
 
 ## Start Hubspot Bulk Job Formula
 
