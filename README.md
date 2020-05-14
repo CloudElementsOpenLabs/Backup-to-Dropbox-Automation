@@ -3,7 +3,7 @@
 This tutorial accompanies the [Automating workflows for your business apps using Cloud Elements](https://dropbox.tech/developers) post featured on the Dropbox Developer blog. This repo along with the linked blog provides a template for creating an automated business application data backup process using Hubspot as an example source and Dropbox as a destination. For more background and context check it out!
 
 ## Prerequisites
-This tutorial assumes the reader has accounts on Dropbox, HubSpot, and Cloud Elements. Each company has a free tier, so please jump in and build along with us! 
+This tutorial assumes the reader has accounts on Dropbox, HubSpot, and Cloud Elements. Each product has a free tier, so please jump in and build along with us! 
 Here’s what you’ll need:
 
 - A free account from Cloud Elements to build and deploy our integration
@@ -60,7 +60,7 @@ This first formula will begin the asynchronous process of compiling a file of da
 
 Read more about configuration variables here: docs.cloud-elements
 
-This formula has just one configuration property, an Element Instance variable for the Hubspot account that will be the source of the bulk download. This configuration variable is found in `/start-hubspot-bulk-job/formua.json`:
+This formula has just one configuration property, an Element Instance variable for the Hubspot account that will be the source of the bulk download. This configuration variable is found in `/start-hubspot-bulk-job/formula.json`:
 
 ```
     "configuration": [{
@@ -76,7 +76,7 @@ This formula has just one configuration property, an Element Instance variable f
 
 Read more about Formula Triggers here: docs.cloud-elements.com
 
-This formula uses a scheduled trigger property with a cron statement that evaluates to every Monday at 1am. This trigger is found in `/start-hubspot-bulk-job/formua.json`:
+This formula uses a scheduled trigger property with a cron statement that evaluates to every Monday at 1am. This trigger is found in `/start-hubspot-bulk-job/formula.json`:
 
 ```
     "triggers": [{
