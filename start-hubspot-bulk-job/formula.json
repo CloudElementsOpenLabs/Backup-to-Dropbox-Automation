@@ -13,13 +13,13 @@
     "triggers": [{
         "name": "trigger",
         "type": "scheduled",
-        "onSuccess": ["createQuery"],
+        "onSuccess": ["createRequestProperties"],
         "properties": {
             "cron": "0 0 01 ? * MON *"
         }
     }],
     "steps": [{
-        "name": "createQuery",
+        "name": "createRequestProperties",
         "type": "script",
         "onSuccess": ["createBulkJob"],
         "onFailure": [],
@@ -29,8 +29,8 @@
         "type": "elementRequest",
         "properties": {
             "method": "POST",
-            "headers": "${steps.createQuery.headers}",
-            "body": "${steps.createQuery.body}",
+            "headers": "${steps.createRequestProperties.headers}",
+            "body": "${steps.createRequestProperties.body}",
             "api": "/bulk/query",
             "elementInstanceId": "${config.HubSpotInstance}"
         }

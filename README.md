@@ -8,7 +8,7 @@ Here’s what you’ll need:
 
 - A free account from Cloud Elements to build and deploy our integration
 - A Dropbox app that is scoped to “Dropbox API → Full Dropbox”
-- A test account created from a free HubSpot developer account
+- A free HubSpot developer account
 
 Nice to haves:
 
@@ -16,7 +16,9 @@ Nice to haves:
 
 ## Getting Started
 
-With the above accounts set up, the file in this repo are the only additional things needed to get up and running. However this tutorial utilizes the Cloud Elements asset management CLI as it walks through the contents of the repo and the steps to activate the automation in Cloud Elements.
+To connect your Dropbox and Hubspot accounts to Cloud Elements [create Element Instances](docs.cloud-elements.com/cretae-an-instance) for each. An Element Instance is a normalized API key that represents the required credentials you would need to access a particular service. 
+
+With your Element instances created, the file in this repo are the only additional things needed to get up and running. However this tutorial utilizes the Cloud Elements asset management CLI as it walks through the contents of the repo and the steps to activate the automation in Cloud Elements.
 
 Quick setup via npm is as follows:
 ```
@@ -58,221 +60,69 @@ This first formula will begin the asynchronous process of compiling a file of da
 
 ### Configuration Variables
 
-Now that we’re setup, we can begin configuring our formula with the `configuration` property. The properties stored in this array are essentially global variables we can use to help specify what the formula does when it runs. We may want to make our formula even more generic in the future so we’ll likely add more `configuration` variables to these. For now we only need to store one thing here: the HubSpot credentials we’ll be using. 
+Read more about configuration variables here: docs.cloud-elements
 
-An Element Instance is a normalized API key that represents the required credentials you would need to access a particular service. This is a good thing to store as a global variable in our formula because we will likely want to test our formula with one set of HubSpot API keys (for a sandbox) and then easily switch to live HubSpot API keys when we’re ready. And by making our HubSpot credentials a configuration variable we’ll be ready to reuse our data collection app for backing up other services beyond HubSpot.
+This formulas uses one configuration property that can be found in `/start-hubspot-bulk-job/formua.json`:
 
-Let’s add that basic configuration data for credentials to our Formula JSON file:
-
-    // formula.json
-    {
-        "name": "start-hubspot-bulk-job",
-        "description": "Start a bulk download from HubSpot",
-        "engine": "v3",
-        "configuration": [{
-            "key": "HubSpot.source",
-            "name": "HubSpot Source Account",
-            "type": "elementInstance",
-            "description": "Source HubSpot instance to backup from",
-            "required": true
-        }],
-        "triggers": [],
-        "steps": []
-    }
+```
+    "configuration": [{
+        "key": "HubSpot.source",
+        "name": "HubSpot Source Account",
+        "type": "elementInstance",
+        "description": "Source HubSpot instance to backup from",
+        "required": true
+    }]
+```
 
 ### Triggers
 
-We mentioned these earlier, this is how we will tell the formula when to run. Formulas can have several different types of Triggers. For our use case we’re going to use a scheduled trigger with a cron statement so that the formula performs our backup every Monday at 1am. This way the backup will be ready for use before the work week starts, and if it goes wrong somehow, we don’t have to check on it over the weekend.
+Read more about Formula Triggers here: docs.cloud-elements.com
 
-Let’s add this cron trigger object to our formula:
-
+This trigger property can be found in `/start-hubspot-bulk-job/formua.json`:
 
 ```
-    {
-        "name": "start-hubspot-bulk-job",
-        "description": "Start a bulk download from HubSpot",
-        "engine": "v3",
-        "configuration": [{
-            "key": "HubspotSource",
-            "name": "HubSpot Source Account",
-            "type": "elementInstance",
-            "description": "Source HubSpot instance to backup from",
-            "required": true
-        }],
-        "triggers": [{
-            "name": "trigger",
-            "type": "scheduled",
-            "onSuccess": [],
-            "properties": {
-                "cron": "0 0 01 ? * MON *"
-            }
-        }],
-        "steps": []
-    }
+    "triggers": [{
+        "name": "trigger",
+        "type": "scheduled",
+        "onSuccess": [],
+        "properties": {
+            "cron": "0 0 01 ? * MON *"
+        }
+    }]
 ```
 
 ### Steps
 
-The steps array is the primary definition of what should be done and in what order.
+Read more about Formula Step types here: docs.cloud-elements.com
+Read more about using JavaScript in Formulas here: docs.cloud-elements.com
 
-All we really need is this first formula to start the bulk download for HubSpot data. But before making a request to that API, we’re going to define the properties of that request in a Javascript file. This way we can easily, and perhaps dynamically, change them in the future. Find the following code in the `createRequestProperties.js` file of the formula folder.
+The steps array is the primary definition of what should be done and in what order. This formula uses 2 steps:
+1. createQuery - a JavaScript step to dynamically set properties used in step 2.
+2. createBulkJob - an Element Request step to initiate an asynchronous bulk data download 
 
-```
-const queryStatement = "select * from contacts";
-const bulkListenerFormulaInstanceID = 00000;
-const callbackURL = `/formulas/instances/${bulkListenerFormulaInstanceID}/executions`; 
-// const callbackURL = "https://requestbin.com/r/{yourAutoGeneratedBinId}"; FOR TESTING
+Find references to both steps in `/start-hubspot-bulk-job/formula.json` but find the referenced JavaScript in its own file `/start-hubspot-bulk-job/createRequestProperties.js`.
 
-done({
-    "body": {
-        "query": queryStatement
-    },
-    "headers": {
-        "Elements-Async-Callback-Url": callbackURL
-    }
-});
-```
+> Note that JavaScript step filenames must match the step's `name` property in the formula.json file.
 
-
-If we refer back to the documentation on the Cloud Elements Bulk API, there are multiple properties that we can use to configure a bulk job which can be fine-tuned in the future. For now, let’s try to do a complete backup of all of our business’ contacts. We’ll pass a very simple `queryStatement` variable to the request. The only other thing we need is the callback URL where we want the “job completed” notification to go. Since we’re going to use another formula for this, we already defined the path for the formula trigger in the `createRequestProperties.js` file:
-
-
-    /formulas/instances/:id/executions
-
-Source: docs.cloud-elements.com/home/triggers#manual
-
-The only part we don’t know is the ID of that formula instance, because we haven’t created it yet. Let’s put a RequestBin URL there (or another URL you can monitor) for some quick visibility. A public RequestBin URL can be created without registering, which will be helpful for testing our first formula. 
-
-
-> Remember to replace the `{yourAutoGeneratedBinId}` part of the callbackURL string with the actual ID that was generated when you created the RequestBin or replace the whole string with the path of your monitored URL. 
-
-The `done()` method passes an object to the next step of our formula. But before that, we need to tell our formula where to find that script file. Add the following object to the `steps` array in our `formula.json` file.
-
-
-    // formula.json
-    {
-        "name": "start-hubspot-bulk-job",
-    ...
-        "steps": [{
-            "name": "createRequestProperties",
-            "type": "script",
-            "onSuccess": [],
-            "onFailure": []
-        }]
-    }
-
-As long as the step’s `name` field matches the filename in our root directory, the Cloud Elements CLI will link the formula step and the script file. And, before we forget, let’s update the `trigger` object so the formula knows it should start with the `createRequestProperties` step after the trigger has been activated. To do this we’ll add the name of our step to the `onSuccess` array.
-
-
-    // formula.json
-    {
-        "name": "start-hubspot-bulk-job",
-    ...
-        "triggers": [{
-            "name": "trigger",
-            "type": "scheduled",
-            "onSuccess": ["createRequestProperties"],
-            "properties": {
-                "cron": "0 0 01 ? * MON *"
-            }
-        }],
-        "steps": [{
-            "name": "createRequestProperties",
-            "type": "script",
-            "onSuccess": [],
-            "onFailure": []
-        }]
-    }
-
-The last step in this formula will be to make the API request which initiates the bulk job with the properties we specified in our script. For this we essentially just need to make an HTTP request to the Cloud Elements Bulk API.
-
-We could write another script that uses a common library for this, but I already mentioned that there were some helpful shorthand steps that the formula provides. The next object we add to the `steps` array will have a `type` of `elementRequest` which will abstract our HTTP request to the Cloud Elements Bulk API. Add the following object to the `steps` array:
-
-
-    // forumla.json
-    {
-        "name": "start-hubspot-bulk-job",
-        "description": "Start a bulk download from HubSpot",
-    ...
-    "steps": [{
-            "name": "createRequestProperties",
-            "type": "script",
-            "onSuccess": [],
-            "onFailure": []
-        }, {
-            "name": "createBulkJob",
-            "type": "elementRequest",
-            "properties": {
-                "method": "POST",
-                "headers": "${steps.createQuery.headers}",
-                "body": "${steps.createQuery.body}",
-                "api": "/bulk/query",
-                "elementInstanceId": "${config.HubspotSource}"
-            }
-        }]
-    }
-
-Lastly, remember to add the name of this step to the `onSuccess` property of our previous step. Our final `formula.json` file should look like this:
-
-
-    // start-hubspot-bulk-job/formula.json
-    {
-        "name": "start-hubspot-bulk-job",
-        "description": "Start a bulk download from HubSpot",
-        "engine": "v3",
-        "configuration": [{
-            "key": "HubSpot.source",
-            "name": "HubSpot Source Account",
-            "type": "elementInstance",
-            "description": "Source HubSpot instance to take backup from",
-            "required": true
-        }],
-        "triggers": [{
-            "name": "trigger",
-            "type": "scheduled",
-            "onSuccess": ["createQuery"],
-            "properties": {
-                "cron": "0 0 01 ? * MON *"
-            }
-        }],
-        "steps": [{
-            "name": "createQuery",
-            "type": "script",
-            "onSuccess": ["createBulkJob"],
-            "onFailure": [],
-            "properties": {}
-        }, {
-            "name": "createBulkJob",
-            "type": "elementRequest",
-            "properties": {
-                "method": "POST",
-                "headers": "${steps.createQuery.headers}",
-                "body": "${steps.createQuery.body}",
-                "api": "/bulk/query",
-                "elementInstanceId": "${config.HubSpotInstance}"
-            }
-        }]
-    }
-
-We’ve told the `elementRequest` step to make a `POST` request with the `headers` and `body` that we defined in our script step. We’ve sent this POST request to the generic bulk API because we also provided the `elementInstanceId` from our HubSpot Instance for Cloud Elements to make the correct API calls to HubSpot and compile our CSV file.
+## Uploading and Testing
 
 Our first formula is complete! Let’s fire up that CLI to upload the formula to your Cloud Elements account.
 
+```
+$ doctor upload formulas {accountName} --dir ./automated-dropbox-uploader
+```
 
-    $ doctor upload formulas {accountName} --dir ./automated-dropbox-uploader
-
-Note: run `doctor accounts list` to see the account name you set up earlier.
+> Note: run `doctor accounts list` to see the account name you set up earlier.
 
 Nice work! Let’s test this first phase before we move on to uploading our results to Dropbox. At this point if we run our formula that we just uploaded, we should get a message in the RequestBin when our formula and our Bulk job is done. But first we need an instance of our Formula that is attached to our HubSpot account, probably a sandbox account, but if you want to start testing with your live data, go crazy!
 
-
-    // sample curl command to create formula instance
-    
+```    
     curl -X POST "https://{yourAccountDomain}.cloud-elements.com/elements/api-v2/formulas/{formulaID}/instances" 
     -H "accept: application/json" 
     -H "Authorization: User {userToken}, Organization {organizationToken}" 
     -H "Content-Type: application/json" 
     -d "{ \"active\": true, \"configuration\": { \"HubspotSource\": \"{HubSpotInstanceID}\" }, \"name\": \"my hubspot bulk job test\"}"
+```
 
 The response body from that request will contain an `id` field, this is your formula instance ID. Even though it’s also scheduled to trigger on Mondays at 1AM, we can use this instance id to trigger this formula manually. Since it is usually set to a chron trigger we don’t have to pass any context in the POST body, but we can still test it with the following API
 
