@@ -16,7 +16,7 @@ Nice to haves:
 
 ## Getting Started
 
-To connect your Dropbox and Hubspot accounts to Cloud Elements [create Element Instances](docs.cloud-elements.com/cretae-an-instance) for each. An Element Instance is a normalized API key that represents the required credentials you would need to access a particular service. 
+To connect your Dropbox and Hubspot accounts to Cloud Elements [create Element Instances](https://docs.cloud-elements.com/home/authenticate) for each. An Element Instance is a normalized API key that represents the required credentials you would need to access a particular service. 
 
 With your Element instances created, the file in this repo are the only additional things needed to get up and running. However this tutorial utilizes the Cloud Elements asset management CLI as it walks through the contents of the repo and the steps to activate the automation in Cloud Elements.
 
@@ -39,11 +39,11 @@ Formulas are reusable workflow templates that are completely independent of API 
   * [Scheduled](https://docs.cloud-elements.com/home/triggers#scheduled)
   * [Manual](https://docs.cloud-elements.com/home/triggers#manual)
 * [Configuration Variables](https://docs.cloud-elements.com/home/formula-variables)
-  * Element Instance Variables
+  * [Element Instance Variables](https://docs.cloud-elements.com/home/formula-variables)
 * [Steps](https://docs.cloud-elements.com/home/formula-step-types)
-  * Element Request
-  * Script
-  * Stream File
+  * [Element Request](https://docs.cloud-elements.com/home/formula-step-types#element-api-request)
+  * [Script](https://docs.cloud-elements.com/home/formula-step-types#js-script)
+  * [Stream File](https://docs.cloud-elements.com/home/formula-step-types#stream-file)
 
 # Solution
 
@@ -140,6 +140,8 @@ Jot down the returned Formula ID found in the doctor success message to use in c
     -d "{ \"active\": true, \"configuration\": { \"HubspotSource\": \"{HubSpotInstanceID}\" }, \"name\": \"my hubspot bulk job test\"}"
 ```
 
+> Note that the base url for this request is `staging` which is the default trial url, but check your environment for the correct base url.
+
 The response body from that request will contain an `id` field, this is your formula instance ID. Even though it’s also scheduled to trigger on Mondays at 1AM, we can use this instance id to trigger this formula manually. Since it is usually set to a chron trigger we don’t have to pass any context in the POST body, but we can still test it with the following API
 
 
@@ -157,7 +159,7 @@ We’re done with the first half of our integration app, now all we have to do i
 
 ## Bulk Listener to Dropbox Formula
 
-This second formula will listen for the completion of the asynchronous data compiling process and then upload the file to Dropbox. To do this it will use a the built in formula [stream step]().
+This second formula will listen for the completion of the asynchronous data compiling process and then upload the file to Dropbox. To do this it will use a the built in formula [stream step](https://docs.cloud-elements.com/home/formula-step-types#stream-file).
 
 ### Configuration Variables
 
