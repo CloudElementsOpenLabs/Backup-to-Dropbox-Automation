@@ -1,24 +1,25 @@
 # Backup to Dropbox Automation - A Formula Tutorial
 
-This tutorial accompanies the [Automating workflows for your business apps using Cloud Elements](https://dropbox.tech/developers) post featured on the Dropbox Developer blog. This repo along with the linked blog provides a template for creating an automated business application data backup process using Hubspot as an example source and Dropbox as a destination. For more background and context check it out!
+This tutorial accompanies the [Automating workflows for your business apps using Cloud Elements](https://dropbox.tech/developers) post featured on the Dropbox Developer blog. Along with the linked blog, this repo provides a template for creating an automated business application data backup process, using Hubspot as an example source and Dropbox as a destination. For more background and context, check it out!
 
 ## Prerequisites
-This tutorial assumes the reader has accounts on Dropbox, HubSpot, and Cloud Elements. Each product has a free tier, so please jump in and build along with us! 
+This tutorial assumes the reader has accounts with Dropbox, HubSpot, and Cloud Elements. Each product has a free tier, so please jump in and build along with us! 
+
 Here’s what you’ll need:
 
-- A free account from Cloud Elements to build and deploy our integration
+- A free account from Cloud Elements to build and deploy our integration (click [here](https://offers.cloud-elements.com/15-day-free-trial-request)) to request a free trial if you don't already have an account
 - A Dropbox app that is scoped to “Dropbox API → Full Dropbox”
 - A free HubSpot developer account
 
-Nice to haves:
+Nice-to-haves:
 
 - Familiarity with JSON, JavaScript, and public APIs
 
 ## Getting Started
 
-To connect your Dropbox and Hubspot accounts to Cloud Elements [create Element Instances](https://docs.cloud-elements.com/home/authenticate) for each. An Element Instance is a normalized API key that represents the required credentials you would need to access a particular service. 
+To connect your Dropbox and Hubspot accounts to Cloud Elements, [authenticate an Element instance](https://docs.cloud-elements.com/home/authenticate) for each. An Element instance is a normalized API key that represents the required credentials you would need to access a particular service. 
 
-With your Element instances created, the file in this repo are the only additional things needed to get up and running. However this tutorial utilizes the Cloud Elements asset management CLI as it walks through the contents of the repo and the steps to activate the automation in Cloud Elements.
+After authenticating your Element instances, the only additional things you need to get up and running are the files in this repo; however, this tutorial utilizes the Cloud Elements asset management CLI as it walks through the contents of the repo and the steps to activate the automation in Cloud Elements.
 
 Quick setup via npm is as follows:
 ```
@@ -26,14 +27,14 @@ $ npm install -g ce-util
 $ doctor init
 ```
 
-> More detailed instructions for installing the CLI can be found here: https://github.com/CloudElementsOpenLabs/the-doctor
+> You can find detailed instructions for installing the CLI here: https://github.com/CloudElementsOpenLabs/the-doctor
 
 
-Be sure to have Cloud Elements org and user secrets available, which can be retrieved from the user menu in the [Cloud Elements UI](https://docs.cloud-elements.com/home/authentication).
+Be sure to have Cloud Elements org and user secrets available; they can be retrieved from the user menu in the [Cloud Elements UI](https://docs.cloud-elements.com/home/authentication).
 
 ### Formulas Summary
 
-Formulas are reusable workflow templates that are completely independent of API providers. Each Formula is an independent bundle of logic; a trigger(s) that kick off a series of steps. More context and documentation for Formulas can be found at the [Cloud Elements Developer Docs](https://docs.cloud-elements.com/home/introduction-to-formulas), but the main components used in this tutorial are as follows:
+Formulas are reusable workflow templates, completely independent of API providers—an independent bundle of logic, a trigger(s) that kick off a series of steps. More context and documentation for Formulas can be found at the [Cloud Elements Developer Docs](https://docs.cloud-elements.com/home/introduction-to-formulas), but the main components used in this tutorial are:
 
 * [Triggers](https://docs.cloud-elements.com/home/triggers)
   * [Scheduled](https://docs.cloud-elements.com/home/triggers#scheduled)
@@ -47,20 +48,20 @@ Formulas are reusable workflow templates that are completely independent of API 
 
 # Solution
 
-As explained in the linked blog, this repository contains two separate formulas, one for each half of our automation solution.
+As explained in the above-linked Dropbox blog, this repository contains two separate formulas, one for each half of our automation solution:
 
 1. [start-hubspot-bulk-job](/start-hubspot-bulk-job): get contact data from Hubspot and consolidate into a single file
-2. [bulk-listener-to-dropbox](/bulk-listener-to-dropbox): upload the file to dropbox
+2. [bulk-listener-to-dropbox](/bulk-listener-to-dropbox): upload the file to Dropbox
 
 ## Start Hubspot Bulk Job Formula
 
-This first formula will begin the asynchronous process of compiling a file of data from the Hubspot account source so that it can easily be streamed to the Dropbox folder where backup data will be stored.
+The first formula will begin the asynchronous process of compiling a file of data from the Hubspot account source so that it can easily be streamed to the Dropbox folder where backup data will be stored.
 
 ### Configuration Variables
 
-Read more about configuration variables here: docs.cloud-elements
+Read more about configuration variables here: docs.cloud-elements.com/home/formula-variables
 
-This formula has just one configuration property, an Element Instance variable for the Hubspot account that will be the source of the bulk download. This configuration variable is found in `/start-hubspot-bulk-job/formula.json`:
+This formula has only one configuration property: an Element instance variable for the Hubspot account that will be the source of the bulk download. This configuration variable is found in `/start-hubspot-bulk-job/formula.json`:
 
 ```
     "configuration": [{
@@ -74,9 +75,9 @@ This formula has just one configuration property, an Element Instance variable f
 
 ### Triggers
 
-Read more about Formula Triggers here: docs.cloud-elements.com
+Read more about formula triggers here: https://docs.cloud-elements.com/home/triggers
 
-This formula uses a scheduled trigger property with a cron statement that evaluates to every Monday at 1am. This trigger is found in `/start-hubspot-bulk-job/formula.json`:
+This formula uses a scheduled trigger property with a cron statement that evaluates to every Monday at 1 AM. This trigger is found in `/start-hubspot-bulk-job/formula.json`:
 
 ```
     "triggers": [{
@@ -91,16 +92,16 @@ This formula uses a scheduled trigger property with a cron statement that evalua
 
 ### Steps
 
-Read more about Formula Step types here: docs.cloud-elements.com
-Read more about using JavaScript in Formulas here: docs.cloud-elements.com
+Read more about Formula Step types here: docs.cloud-elements.com/home/formula-step-types
+Read more about using JavaScript in Formulas here: docs.cloud-elements.com/home/javascript-in-formulas
 
-The steps array is the primary definition of what should be done and in what order. This formula uses 2 steps:
-1. createQuery - a JavaScript step to dynamically set properties used in step 2.
+The steps array is the primary definition of what should be done and in what order. This formula uses two steps:
+1. createQuery - a JavaScript step to dynamically set properties used in step 2
 2. createBulkJob - an Element Request step to initiate an asynchronous bulk data download 
 
-Find references to both steps in `/start-hubspot-bulk-job/formula.json` but find the referenced JavaScript in its own file `/start-hubspot-bulk-job/createRequestProperties.js`.
+Find references to both steps in `/start-hubspot-bulk-job/formula.json`, but find the referenced JavaScript in its own file at `/start-hubspot-bulk-job/createRequestProperties.js`.
 
-Notice that in the below JavaScript snippet there are two URLs for use as callbackURLs. The one that is commented out will be our production version that will reference the `bulk-listener-to-dropbox` formula once it is created. The uncommented URL references [requestbin](https://requestbin.com) for use as a testing destination before the second formula is created.
+Notice in the below JavaScript snippet there are two URLs for use as callbackURLs. The commented-out snippet will be our production version that will reference the `bulk-listener-to-dropbox` formula once it is created. The uncommented URL references [requestbin](https://requestbin.com) for use as a testing destination before the second formula is created.
 
 ```
 const queryStatement = "select * from contacts";
@@ -129,7 +130,7 @@ $ doctor upload formulas {accountName} --dir ./automated-dropbox-uploader
 
 > Tip: run the command `doctor accounts list` to see the account name you set up earlier.
 
-Jot down the returned Formula ID found in the doctor success message to use in creating an instance of the Formula.
+Jot down the returned Formula ID found in the Doctor success message to use in creating an instance of the formula.
 
 
 ```    
@@ -140,9 +141,9 @@ Jot down the returned Formula ID found in the doctor success message to use in c
     -d "{ \"active\": true, \"configuration\": { \"HubspotSource\": \"{HubSpotInstanceID}\" }, \"name\": \"my hubspot bulk job test\"}"
 ```
 
-> Note that the base url for this request is `staging` which is the default trial url, but check your environment for the correct base url.
+> Note that the base url for this request is `staging`, which is the default trial url, but check your environment for the correct base url.
 
-The response body from that request will contain an `id` field, this is your formula instance ID. Even though it’s also scheduled to trigger on Mondays at 1AM, we can use this instance id to trigger this formula manually. Since it is usually set to a chron trigger we don’t have to pass any context in the POST body, but we can still test it with the following API
+The response body from that request will contain an `id` field, which is your formula instance ID. Even though it’s also scheduled to trigger on Mondays at 1 AM, we can use this instance id to manually trigger this formula. Since it's usually set to a cron trigger, we don’t have to pass any context in the POST body, but we can still test it with the following API:
 
 
 ```    
@@ -153,13 +154,13 @@ The response body from that request will contain an `id` field, this is your for
     -d "{}"
 ```
 
-After triggering a formula execution, revisit your RequestBin and take a look at the message that you received. There’s a useful summary of the bulk job, but most importantly is the `id` field. Take note of this as we’ll be making use of it in part two.
+After triggering a formula execution, revisit your RequestBin and take a look at the message you should have received. There’s a useful summary of the bulk job, but most importantly,  it includes the `id` field. Take note of this field's value, as we’ll be making use of it in part two.
 
-We’re done with the first half of our integration app, now all we have to do is upload the results of that Bulk job to Dropbox. We’ll write another short formula for that and then tie the two together.
+We’re done with the first half of our integration app! Now all we have to do is upload the results of that bulk job to Dropbox. We’ll write another short formula for that, and then tie the two together.
 
 ## Bulk Listener to Dropbox Formula
 
-This second formula will listen for the completion of the asynchronous data compiling process and then upload the file to Dropbox. To do this it will use a the built in formula [stream step](https://docs.cloud-elements.com/home/formula-step-types#stream-file).
+The second formula will listen for the completion of the asynchronous data compiling process, and then upload the file to Dropbox. To do this, it will use a built-in formula [stream step](https://docs.cloud-elements.com/home/formula-step-types#stream-file).
 
 ### Configuration Variables
 
@@ -181,7 +182,7 @@ This second formula will listen for the completion of the asynchronous data comp
 
 ### Triggers
 
-Let’s add a manual trigger to this formula which will listen for the webhook. And don’t forget to update the `streamBulkResults` step `downloadApi` property to use the job ID that will come from the trigger.
+To the formula, let’s add a manual trigger that will listen for the webhook. And don’t forget to update the `streamBulkResults` step `downloadApi` property to use the job ID that will come from the trigger.
 
 ```
 "triggers": [{
@@ -195,7 +196,7 @@ Let’s add a manual trigger to this formula which will listen for the webhook. 
 
 ### Steps
 
-Let’s add a manual trigger to this formula which will listen for the webhook. And don’t forget to update the `streamBulkResults` step `downloadApi` property to use the job ID that will come from the trigger.
+To the formula, let’s add a manual trigger that will listen for the webhook. And don’t forget to update the `streamBulkResults` step `downloadApi` property to use the job ID that will come from the trigger.
 
 ```
 {
@@ -222,7 +223,7 @@ Now we have our formula for phase 2. Let’s deploy that using the upload functi
 $ doctor upload formulas {accountName} --dir ~/path/to/this/directory
 ```
 
-Like with our last formula, we’ll create an instance so that we can have a specific version of this formula listening to the specific version of the first formula. If we decide to automate backups for all of our data in HubSpot, not just Contact data, we could have several instances of both of these formulas. 
+Like with our last formula, we’ll create an instance so that we can have a specific version of this formula listening to the specific version of the first formula. If we decide to automate backups for all of our data in HubSpot—not just Contact data—we could have several instances of both of these formulas:
 
 ```   
     curl -X POST "https://{yourAccountDomain}.cloud-elements.com/elements/api-v2/formulas/{formulaID}/instances" 
