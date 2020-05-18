@@ -18,11 +18,11 @@
         "type": "manual",
         "name": "trigger",
         "properties": {},
-        "onSuccess": ["streamBulkResults"],
+        "onSuccess": ["destinationFolderProperties"],
         "onFailure": []
     }],
     "steps": [{
-        "name": "destinationFolder",
+        "name": "destinationFolderProperties",
         "type": "script",
         "onSuccess": ["streamBulkResults"],
         "onFailure": [],
